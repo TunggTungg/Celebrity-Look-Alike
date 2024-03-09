@@ -26,9 +26,8 @@ while cap.isOpened():
     if success:
         # Run YOLOv8 inference on the frame
         results = detector.detect(frame)
-        
         aligned_faces, coor = detector.pre_processing_faces(frame, results)
-        
+
         if len(aligned_faces) != 0:
             embeddings = fe.pre_processing(aligned_faces)
             paths = []
@@ -37,17 +36,17 @@ while cap.isOpened():
                 paths.append(res)
 
         # Visualize the results on the frame
-        annotated_frame = results.plot(kpt_radius=0) # kpt_radius=0 for no plotting poses 
-        base_img = annotated_frame.copy()
-
+        base_img = frame.copy()
+        # print(len(coor))
         for i in range(len(coor)):
             label = paths[i].split("/")[0]
-            print(label)
             display_img = cv2.imread("./celeb_data/"+paths[i])
+            display_img = aligned_faces[i]
             display_img = cv2.resize(display_img, (pivot_img_size,pivot_img_size))
             facial_area = coor[i]
             x, y, w, h = facial_area.x, facial_area.y, facial_area.w, facial_area.h
-
+            # Plot Bounding Box
+            base_img = cv2.rectangle(base_img, (x,y), (x+w, y+h), (0,255,0), 1) 
             if (y - pivot_img_size > 0 and x + w + pivot_img_size < resolution_x):
                 # top right
                 base_img[
@@ -100,7 +99,7 @@ while cap.isOpened():
         cv2.imshow("YOLOv8 Inference", base_img)
 
         # Break the loop if 'q' is pressed
-        if cv2.waitKey(1) & 0xFF == ord("q"):
+        if cv2.waitKey(10) & 0xFF == ord("q"):
             break
     else:
         # Break the loop if the end of the video is reached

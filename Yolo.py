@@ -1,11 +1,9 @@
-
 from typing import Any, List, Tuple, Union, Optional
 from PIL import Image
 import numpy as np
 import cv2
 from ultralytics import YOLO
-from abc import ABC, abstractmethod
-
+from abc import ABC
 
 class FacialAreaRegion:
     x: int
@@ -24,7 +22,6 @@ class FacialAreaRegion:
         h: int,
         left_eye: Optional[Tuple[int, int]] = None,
         right_eye: Optional[Tuple[int, int]] = None,
-        confidence: Optional[float] = None,
     ):
         self.x = x
         self.y = y
@@ -32,7 +29,6 @@ class FacialAreaRegion:
         self.h = h
         self.left_eye = left_eye
         self.right_eye = right_eye
-        self.confidence = confidence
 
 class YoloDetector():
     def __init__(self):
@@ -66,7 +62,7 @@ class YoloDetector():
         Returns:
             results (List): detected faces
         """
-        results = self.model(img, agnostic_nms=True, conf=0.5, verbose = False)[0]
+        results = self.model(img, agnostic_nms=True, conf=0.5, verbose = False, stream=True)
         return results
     
     def align_face(self, img: np.ndarray, left_eye: Union[list, tuple], right_eye: Union[list, tuple]) -> Tuple[np.ndarray, float]:
@@ -134,32 +130,31 @@ class YoloDetector():
         coor = []
         for result in results:
             # Extract the bounding box and the confidence
-            x, y, w, h = result.boxes.xywh.tolist()[0]
-            confidence = result.boxes.conf.tolist()[0]
-            
-            # left_eye_conf = result.keypoints.conf[0][0]
-            # right_eye_conf = result.keypoints.conf[0][1]
-            left_eye = result.keypoints.xy[0][0].tolist()
-            right_eye = result.keypoints.xy[0][1].tolist()
+            if result.boxes.xywh.size()[0] != 0:
+                boxes = result.boxes.xywh.tolist()
+                eyes = result.keypoints.xy
+                for i in range(len(result)): 
+                    x, y, w, h = boxes[i]
+                    
+                    left_eye = eyes[i][0].tolist()
+                    right_eye = eyes[i][1].tolist()
 
-            # eyes are list of float, need to cast them tuple of int
-            left_eye = tuple(int(i) for i in left_eye)
-            right_eye = tuple(int(i) for i in right_eye)
-                # left_eye, right_eye = None, None
-            x, y, w, h = int(x - w / 2), int(y - h / 2), int(w), int(h)
-            facial_area = FacialAreaRegion(
-                x=x,
-                y=y,
-                w=w,
-                h=h,
-                left_eye=left_eye,
-                right_eye=right_eye,
-                confidence=confidence,
-            )
-            coor.append(facial_area)
-            aligned = self.align_face(img, left_eye=facial_area.left_eye, right_eye=facial_area.right_eye)
-            aligned_faces.append(aligned)
-
+                    # # eyes are list of float, need to cast them tuple of int
+                    left_eye = tuple(int(i) for i in left_eye)
+                    right_eye = tuple(int(i) for i in right_eye)
+                    # left_eye, right_eye = None, None
+                    x, y, w, h = int(x - w / 2), int(y - h / 2), int(w), int(h)
+                    facial_area = FacialAreaRegion(
+                        x=x,
+                        y=y,
+                        w=w,
+                        h=h,
+                        left_eye=left_eye,
+                        right_eye=right_eye,
+                    )
+                    coor.append(facial_area)
+                    aligned = self.align_face(img, left_eye=facial_area.left_eye, right_eye=facial_area.right_eye)
+                    aligned_faces.append(aligned)
         return aligned_faces, coor
         
 
