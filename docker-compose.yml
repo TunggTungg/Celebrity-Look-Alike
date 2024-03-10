@@ -1,5 +1,30 @@
 version: '3'
 services:
+  web:
+    container_name: Celebrity-Look-Alike-Web
+    build: .
+    restart: always
+    volumes:
+      - .:/app
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000", "--reload"]
+    ports:
+      - "5000:5000"
+    depends_on:
+      - elasticsearch
+      - kibana
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count:  1
+              capabilities: [gpu]
+    devices:
+      - /dev/video0:/dev/video0
+    networks:
+      mynet:
+        ipv4_address: 10.5.0.3
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.12.2
     container_name: elasticsearch
@@ -20,11 +45,14 @@ services:
       mynet:
         ipv4_address: 10.5.0.4
     restart: always
+
   kibana:
     image: docker.elastic.co/kibana/kibana:8.12.2
     container_name: kibana
     ports:
       - "5601:5601"
+    depends_on:
+      - elasticsearch
     networks:
       mynet:
         ipv4_address: 10.5.0.5

@@ -1,9 +1,12 @@
 numpy<=1.23.5
 onnx 
 onnxsim 
-opencv-python
+opencv-contrib-python-headless
+tensorflow
 torch
 torchvision
 ultralytics
 tensorrt
 elasticsearch
+fastapi[all]
+imutils
