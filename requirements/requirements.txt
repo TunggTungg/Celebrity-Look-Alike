@@ -1,0 +1,13 @@
+numpy<=1.23.5
+onnxruntime-gpu
+onnx 
+onnxsim 
+opencv-contrib-python-headless
+tensorflow
+torch
+torchvision
+tensorrt
+elasticsearch
+fastapi[all]
+imutils
+tritonclient[all]

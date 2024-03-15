@@ -2,7 +2,8 @@ version: '3'
 services:
   web:
     container_name: Celebrity-Look-Alike-Web
-    build: .
+    build: 
+      dockerfile: Dockerfile  
     restart: always
     volumes:
       - .:/app
@@ -12,6 +13,7 @@ services:
     depends_on:
       - elasticsearch
       - kibana
+      - tritonserver
     deploy:
       resources:
         reservations:
@@ -53,6 +55,29 @@ services:
       - "5601:5601"
     depends_on:
       - elasticsearch
+    networks:
+      mynet:
+        ipv4_address: 10.5.0.2
+  
+  tritonserver:
+    image: nvcr.io/nvidia/tritonserver:24.01-py3
+    build:
+      dockerfile: Dockerfile.triton_server   
+    restart: always
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8002:8002"
+    volumes:
+      - ./models:/models
+    command: ["tritonserver", "--model-repository=/models", "--log-verbose", "1"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count:  1
+              capabilities: [gpu]
     networks:
       mynet:
         ipv4_address: 10.5.0.5

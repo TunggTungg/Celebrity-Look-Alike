@@ -1,13 +1,13 @@
-from utils.utils import Camera, cv2, plot
-import time
 from fastapi import FastAPI, Request
 from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from utils.detector import YoloDetector
-from utils.feature_extractor import Feature_Extractor
+from utils.triton_serving import triton_client
 from utils.database import DataBase
+from utils.utils import Camera, cv2, plot
 import imutils
+import asyncio
+import time
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -15,8 +15,7 @@ templates = Jinja2Templates(directory="templates")
 
 # Init 
 cap = Camera(0)
-detector = YoloDetector()
-fe = Feature_Extractor()
+client = triton_client()
 db = DataBase("http://10.5.0.4:9200")
 
 def gen_frames():
@@ -24,21 +23,21 @@ def gen_frames():
         success, frame = cap.read()
         frame = imutils.resize(frame, width=720)
         if success:
+            start = time.time()
             # Run YOLOv8 inference on the frame
-            aligned_faces, coors = detector.detect(frame)
-            
-            if len(aligned_faces) != 0:
-                embeddings = fe.pre_processing(aligned_faces)
-                paths = db.search(embeddings)
-
+            embedding_vectors, coordinates = client.query(frame)
+        
+            if embedding_vectors.shape[0] != 0:
+                paths = db.search(embedding_vectors)
                 # Visualize the results on the frame
-                frame = plot(coors, paths, frame)
-            _, buffer = cv2.imencode('.jpg', frame)
+                frame = plot(coordinates, paths, frame)
+            elapsed_time = time.time() - start
 
+            _, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        time.sleep(0.01)
+        time.sleep(max(0, 0.03 - elapsed_time))
 
 @app.get('/')
 def index(request: Request):

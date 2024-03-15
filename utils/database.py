@@ -53,4 +53,7 @@ class DataBase():
             result = self.es.search(index="face_recognition", body=self.query)["hits"]["hits"][0]
             results.append(result["_source"]["title_name"])
         return results
-        
+
+if __name__ == "__main__":
+    db = DataBase()
+    db.add_index()

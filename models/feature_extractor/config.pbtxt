@@ -1,0 +1,59 @@
+name: "feature_extractor"
+platform: "tensorflow_savedmodel"
+max_batch_size : 4
+
+input [
+  {
+    name: "input_image"
+    data_type: TYPE_FP32
+    dims: [ 160, 160, 3 ]
+  }
+]
+
+output [
+  {
+    name: "embedding_output"
+    data_type: TYPE_FP32
+    dims: [ 512 ] 
+  }
+]
+
+model_warmup {
+   name: "feature_extractor"
+   batch_size: 4
+   inputs: {
+       key: "input_image"
+       value: {
+           data_type: TYPE_FP32
+           dims: 160
+           dims: 160
+           dims: 3
+           zero_data: true
+       }
+   }
+}
+
+optimization {
+  graph : {
+    level : 1
+  }
+ execution_accelerators {
+    gpu_execution_accelerator : [ {
+      name : "tensorrt",
+      parameters { key: "precision_mode" value: "FP16" },
+      parameters { key: "max_workspace_size_bytes" value: "2147483648" }
+    }]
+  }
+}
+
+# dynamic_batching {
+#     max_queue_delay_microseconds: 0
+# }
+
+# instance_group [
+#  {
+#    count: 1
+#    kind: KIND_GPU
+#    gpus: [ 0 ]
+#  }
+# ]
