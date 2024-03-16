@@ -6,7 +6,6 @@ from utils.triton_serving import triton_client
 from utils.database import DataBase
 from utils.utils import Camera, cv2, plot
 import imutils
-import asyncio
 import time
 
 app = FastAPI()
@@ -31,10 +30,12 @@ def gen_frames():
                 paths = db.search(embedding_vectors)
                 # Visualize the results on the frame
                 frame = plot(coordinates, paths, frame)
-            elapsed_time = time.time() - start
-
+            
             _, buffer = cv2.imencode('.jpg', frame)
             frame = buffer.tobytes()
+
+            elapsed_time = time.time() - start
+
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         time.sleep(max(0, 0.03 - elapsed_time))

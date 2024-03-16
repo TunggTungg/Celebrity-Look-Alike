@@ -1,6 +1,7 @@
 import tritonclient.grpc as grpc_client
 import contextlib
 import numpy as np
+import cv2
 import time
 
 class triton_client():
@@ -9,9 +10,8 @@ class triton_client():
         self.port = port
         self.triton_client = grpc_client.InferenceServerClient(url=":".join([self.host, self.port]))
         self.connected = False
-        self.connect()
 
-    def connect(self): 
+    def connect(self, img:np.array): 
         while not self.connected:
             with contextlib.suppress(Exception):
                 assert self.triton_client.is_model_ready('pipeline')

@@ -1,4 +1,3 @@
-from typing import List
 import cv2
 
 class Camera():

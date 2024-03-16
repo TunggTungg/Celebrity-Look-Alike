@@ -13,7 +13,7 @@ class input_object():
 
     def pre_precessing(self, ori_image):
         shape = self.ori_shape 
-        new_shape = (640, 640)
+        new_shape = (480, 480)
         
         # Scale ratio (new / old)
         r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])

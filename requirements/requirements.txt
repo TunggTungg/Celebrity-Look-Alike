@@ -1,13 +1,6 @@
 numpy<=1.23.5
-onnxruntime-gpu
-onnx 
-onnxsim 
-opencv-contrib-python-headless
-tensorflow
-torch
-torchvision
-tensorrt
+opencv-python-headless
 elasticsearch
+tritonclient[all]
 fastapi[all]
 imutils
-tritonclient[all]
