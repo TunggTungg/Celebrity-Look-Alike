@@ -14,7 +14,7 @@
   * [YOLOv8-face](https://github.com/derronqi/yolov8-face) for face detection.
   * [FaceNet-512](https://github.com/timesler/facenet-pytorch) for facial feature extraction.
   * [Elasticsearch](https://www.elastic.co/) for storing and querying celebrity facial features.
-  * [Triton serving](https://github.com/triton-inference-server/server)for efficient model serving.
+  * [Triton serving](https://github.com/triton-inference-server/server) for efficient model serving.
   * [FastAPI](https://fastapi.tiangolo.com/) for web deployment.
 
 
